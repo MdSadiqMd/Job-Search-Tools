@@ -3,16 +3,18 @@
 import { useState, useRef } from 'react';
 import { Upload } from 'lucide-react';
 import axios from 'axios';
+import jsPDF from 'jspdf';
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from '@/hooks/use-toast';
 
-export default function Component() {
+export default function Page() {
   const [jobDescription, setJobDescription] = useState('');
   const [resume, setResume] = useState('');
   const [coverLetter, setCoverLetter] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const coverLetterRef = useRef<HTMLTextAreaElement>(null);
 
   const handleGenerateCoverLetter = () => {
     setCoverLetter('Your AI-generated cover letter will appear here. Feel free to edit and refine it as needed.');
@@ -42,10 +44,10 @@ export default function Component() {
         file: base64File,
         fileType
       });
-
       if (response.status === 200) {
         const { data } = response;
         setResume(data.text);
+        /* setCoverLetter(data.text); */
         toast({
           title: "File uploaded successfully",
           description: `${file.name} has been uploaded and its content has been added to the resume field.`,
@@ -79,19 +81,40 @@ export default function Component() {
   const handleUploadClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
-
-      fileInputRef.current.onchange = () => {
-        const file = fileInputRef.current?.files?.[0];
-        if (file) {
-          handleFileUpload(file);
-        }
-      };
     }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) handleFileUpload(file);
+  };
+
+  const stripHtmlTags = (html: string) => {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    return tempDiv.textContent || tempDiv.innerText || '';
+  };
+
+  const handleDownloadPDF = () => {
+    const cleanedCoverLetter = stripHtmlTags(coverLetter);
+    const pdf = new jsPDF();
+    const margin = 10;
+    const pageWidth = pdf.internal.pageSize.width - 2 * margin;
+    const lineHeight = 10;
+    const textLines: string[] = pdf.splitTextToSize(cleanedCoverLetter, pageWidth);
+    const pageHeight = pdf.internal.pageSize.height - 2 * margin;
+    let y = margin;
+
+    textLines.forEach((line: string) => {
+      if (y + lineHeight > pageHeight) {
+        pdf.addPage();
+        y = margin;
+      }
+      pdf.text(line, margin, y);
+      y += lineHeight;
+    });
+
+    pdf.save('cover_letter.pdf');
   };
 
   return (
@@ -155,11 +178,18 @@ export default function Component() {
         <div>
           <h2 className="text-2xl font-bold text-green-800 mb-6">Cover Letter Preview</h2>
           <Textarea
+            ref={coverLetterRef}
             value={coverLetter}
             onChange={(e) => setCoverLetter(e.target.value)}
             placeholder="Your generated cover letter will appear here..."
             className="w-full h-[calc(100%-3rem)] min-h-[400px] p-4 border-gray-300 focus:border-green-500 focus:ring-green-500"
           />
+          <Button
+            onClick={handleDownloadPDF}
+            className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded mt-4"
+          >
+            Download
+          </Button>
         </div>
       </div>
     </div>
