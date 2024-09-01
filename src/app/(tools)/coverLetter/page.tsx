@@ -16,10 +16,6 @@ export default function Page() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverLetterRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleGenerateCoverLetter = () => {
-    setCoverLetter('Your AI-generated cover letter will appear here. Feel free to edit and refine it as needed.');
-  };
-
   const handleResumeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setResume(e.target.value);
   };
@@ -40,14 +36,13 @@ export default function Page() {
     try {
       const base64File = await fileToBase64(file);
       const fileType = file.type;
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND}/api/cover-letter`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND}/api/parse-resume`, {
         file: base64File,
         fileType
       });
       if (response.status === 200) {
         const { data } = response;
-        setResume(data.text);
-        /* setCoverLetter(data.text); */
+        setResume(data.parsedResumeContents);
         toast({
           title: "File uploaded successfully",
           description: `${file.name} has been uploaded and its content has been added to the resume field.`,
@@ -56,6 +51,33 @@ export default function Page() {
         toast({
           title: "Error uploading file",
           description: "There was an issue uploading the file. Please try again.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+      });
+    }
+  };
+
+  const handleGenerateCoverLetter = async () => {
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND}/api/cover-letter`, {
+        parsedResume: resume,
+        jobDescription
+      });
+      if (response.status === 200) {
+        const { data } = response;
+        setCoverLetter(data.coverLetter.response.candidates[0].content.parts[0].text);
+        toast({
+          title: "Cover Letter Generated Successfully",
+          description: "",
+        });
+      } else {
+        toast({
+          title: "Error generating cover letter",
+          description: "There was an issue generating cover letter. Please try again.",
         });
       }
     } catch (error) {
