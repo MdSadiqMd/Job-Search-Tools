@@ -5,7 +5,7 @@ import { ToolCard } from "@/components/ui/toolcard";
 export default function Home() {
   const tools = [
     {
-      icon: "/image",
+      icon: "/letter.png",
       title: "AI Cover Letter Generator",
       description: "Create customized cover letters with AI assistance.",
       action: "Try Now",
@@ -13,7 +13,7 @@ export default function Home() {
       href: 'coverLetter'
     },
     {
-      icon: "/image",
+      icon: "/application-tracker.png",
       title: "Job Application Tracker",
       description: "Simple Kanban board to organize your job applications.",
       action: "Try Now",
@@ -21,7 +21,7 @@ export default function Home() {
       href: ''
     },
     {
-      icon: "/image",
+      icon: "/ats-scanner.png",
       title: "ATS Scanner",
       description: "Check if your resume is ATS-friendly.",
       action: "",
@@ -29,7 +29,7 @@ export default function Home() {
       href: ''
     },
     {
-      icon: "/image",
+      icon: "/linkedin-profile.png",
       title: "LinkedIn Profile Optimizer",
       description: "Improve your LinkedIn profile visibility.",
       action: "",
@@ -37,7 +37,7 @@ export default function Home() {
       href: ''
     },
     {
-      icon: "/image",
+      icon: "/resume-optimiser.png",
       title: "Resume Optimizer",
       description: "Get tips to enhance your resume.",
       action: "",
@@ -45,7 +45,7 @@ export default function Home() {
       href: ''
     },
     {
-      icon: "/image",
+      icon: "/interview.png",
       title: "Interview Question Simulator",
       description: "Practice common interview questions.",
       action: "",
@@ -53,7 +53,7 @@ export default function Home() {
       href: ''
     },
     {
-      icon: "/image",
+      icon: "/brand.png",
       title: "Personal Brand Statement Generator",
       description: "Create a compelling personal brand statement.",
       action: "",
@@ -61,7 +61,7 @@ export default function Home() {
       href: ''
     },
     {
-      icon: "/image",
+      icon: "/networking.png",
       title: "Networking Email Template Builder",
       description: "Craft professional networking emails.",
       action: "",
@@ -71,7 +71,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-gradient-to-r from-green-200 via-emerald-300 to-teal-500">
+    <div className="w-screen h-screen px-4 py-8 bg-gradient-to-r from-green-200 via-emerald-300 to-teal-500 overflow-x-hidden">
       <h1 className="text-4xl font-bold text-green-800 mb-2">Free Job Search Tools</h1>
       <p className="text-xl text-gray-600 mb-8">Empower your job hunt with our suite of free, easy-to-use tools.</p>
 

@@ -28,8 +28,10 @@ export function ToolCard({
 
     return (
         <div className="bg-white rounded-lg shadow-md p-6 flex flex-col">
-            <Image src={icon} alt="" width={40} height={40} className="mb-4" />
-            <h2 className="text-xl font-semibold text-green-700 mb-2">{title}</h2>
+            <div className="flex items-center mb-4 space-x-3">
+                <Image src={icon} alt="" width={40} height={40} className="mb-2" />
+                <h2 className="text-xl font-semibold text-green-700 ml-0">{title}</h2>
+            </div>
             <p className="text-gray-600 mb-4 flex-grow">{description}</p>
             {comingSoon ? (
                 <div className="flex items-center text-orange-500">
@@ -38,7 +40,7 @@ export function ToolCard({
                 </div>
             ) : (
                 <button
-                    className="bg-green-500 text-white px-4 py-2 rounded-md flex items-center justify-center hover:bg-green-600 transition-colors"
+                    className="bg-green-500 text-white w-[50%] px-4 py-2 rounded-md flex items-center justify-center hover:bg-green-600 transition-colors"
                     onClick={() => handleClick(href)}
                 >
                     {action}
