@@ -36,14 +36,15 @@ export default function Component() {
 
   const handleFileUpload = async (file: File) => {
     try {
-      console.log(file);
       const base64File = await fileToBase64(file);
-      const response = await axios.post('/api/cover-letter', {
-        body: JSON.stringify({ file: base64File }),
+      const fileType = file.type;
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND}/api/cover-letter`, {
+        file: base64File,
+        fileType
       });
 
       if (response.status === 200) {
-        const data: any = await JSON.stringify(response);
+        const { data } = response;
         setResume(data.text);
         toast({
           title: "File uploaded successfully",
