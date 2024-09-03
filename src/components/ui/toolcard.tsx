@@ -4,6 +4,8 @@ import Image from "next/image";
 import { ArrowRight, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { Button } from "./button";
+
 interface ToolCardProps {
     icon: string;
     title: string;
@@ -39,13 +41,13 @@ export function ToolCard({
                     <span>Coming Soon</span>
                 </div>
             ) : (
-                <button
+                <Button
                     className="bg-green-500 text-white w-[50%] px-4 py-2 rounded-md flex items-center justify-center hover:bg-green-600 transition-colors"
                     onClick={() => handleClick(href)}
                 >
                     {action}
                     <ArrowRight className="w-4 h-4 ml-2" />
-                </button>
+                </Button>
             )}
         </div>
     );
