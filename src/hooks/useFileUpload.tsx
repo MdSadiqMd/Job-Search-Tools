@@ -2,9 +2,18 @@ import { useState } from 'react';
 import axios from 'axios';
 
 import { toast } from '@/hooks/use-toast';
+import { useMutation } from '@tanstack/react-query';
+
+interface UploadFileArgs {
+    base64File: string;
+    fileType: string;
+}
+
+interface UploadFileResponse {
+    parsedResumeContents: string;
+}
 
 const useFileUpload = () => {
-    const [loading, setLoading] = useState(false);
     const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
 
     const fileToBase64 = (file: File): Promise<string> => {
@@ -19,45 +28,53 @@ const useFileUpload = () => {
         });
     };
 
-    const handleFileUpload = async (file: File, updateResume: (content: string) => void) => {
-        setLoading(true);
-        setUploadedFileName(file.name);
-        try {
-            const base64File = await fileToBase64(file);
-            const fileType = file.type;
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND}/api/parse-resume`, {
+    const uploadFileMutation = useMutation<UploadFileResponse, Error, UploadFileArgs>({
+        mutationFn: async ({ base64File, fileType }: UploadFileArgs) => {
+            const response = await axios.post<UploadFileResponse>(`${process.env.NEXT_PUBLIC_BACKEND}/api/parse-resume`, {
                 file: base64File,
                 fileType
             });
-            console.log(response);
-            if (response.status === 200) {
-                const { data } = response;
-                updateResume(data.parsedResumeContents || '');
-                toast({
-                    title: "File uploaded successfully",
-                    description: `${file.name} has been uploaded and its content has been added to the resume field.`,
-                });
-            } else {
-                toast({
-                    title: "Error uploading file",
-                    description: "There was an issue uploading the file. Please try again.",
-                });
-            }
+            return response.data;
+        },
+        onSuccess: () => {
+            toast({
+                title: "File uploaded successfully",
+                description: `${uploadedFileName} has been uploaded and its content has been added to the resume field.`,
+            });
+        },
+        onError: () => {
+            toast({
+                title: "Error uploading file",
+                description: "There was an issue uploading the file. Please try again.",
+            });
+        },
+        onSettled: () => {
+            setUploadedFileName(null);
+        }
+    });
+
+    const handleFileUploadWrapper = async (file: File, updateResume: (content: string) => void) => {
+        setUploadedFileName(file.name);
+        try {
+            const base64File = await fileToBase64(file);
+            uploadFileMutation.mutate({ base64File, fileType: file.type }, {
+                onSuccess: (data) => {
+                    updateResume(data.parsedResumeContents || '');
+                }
+            });
         } catch (error) {
             toast({
                 title: "Error",
                 description: "An unexpected error occurred. Please try again.",
             });
-        } finally {
-            setLoading(false);
         }
     };
 
     return {
-        loading,
+        loading: uploadFileMutation.status === "pending",
         uploadedFileName,
         setUploadedFileName,
-        handleFileUpload,
+        handleFileUpload: handleFileUploadWrapper,
     };
 };
 

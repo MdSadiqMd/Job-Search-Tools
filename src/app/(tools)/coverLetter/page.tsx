@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import FileUploadButton from '@/components/ui/fileUploadButton';
-import { useFileUpload, useGenerateCoverLetter } from '@/hooks';
+import { useFileUpload, useGenerateCoverLetter, toast } from '@/hooks';
 import { coverLetterInputSchema } from '@/types';
 import { handleDownloadPDF } from '@/utils';
 
@@ -24,19 +24,27 @@ export default function Page() {
   });
 
   const { uploadedFileName, setUploadedFileName, handleFileUpload } = useFileUpload();
-  const { loading, coverLetter, setCoverLetter, generateCoverLetter } = useGenerateCoverLetter();
+  const { loading, coverLetter, generateCoverLetter } = useGenerateCoverLetter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleResumePaste = (e: React.ClipboardEvent) => {
+  const handleResumePaste = async (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;
     for (let i = 0; i < items.length; i++) {
       if (items[i].kind === 'file') {
         e.preventDefault();
         const file = items[i].getAsFile();
         if (file) {
-          handleFileUpload(file, (content) => {
+          try {
+            const content = await new Promise<string>((resolve, reject) => {
+              handleFileUpload(file, (content) => resolve(content));
+            });
             setValue('resume', content);
-          });
+          } catch (error) {
+            toast({
+              title: "Error",
+              description: "An unexpected error occurred while pasting the file.",
+            });
+          }
         }
         break;
       }
@@ -49,9 +57,22 @@ export default function Page() {
     }
   };
 
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) handleFileUpload(file, (content) => setValue('resume', content));
+    if (file) {
+      try {
+        const content = await new Promise<string>((resolve, reject) => {
+          handleFileUpload(file, (content) => resolve(content));
+        });
+        setValue('resume', content);
+        setUploadedFileName(file.name);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred while uploading the file.",
+        });
+      }
+    }
   };
 
   const handleRemoveFile = () => {
@@ -145,7 +166,7 @@ export default function Page() {
           <h2 className="text-2xl font-bold text-green-800 mb-6">Cover Letter Preview</h2>
           <Textarea
             value={coverLetter}
-            onChange={(e) => setCoverLetter(e.target.value)}
+            onChange={(e) => { }}
             placeholder="Your generated cover letter will appear here..."
             className="w-full h-[calc(100%-3rem)] min-h-[400px] p-4 border-gray-300 focus:border-green-500 focus:ring-green-500"
           />

@@ -1,46 +1,43 @@
-import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 
 import { toast } from '@/hooks/use-toast';
 
-export const useGenerateCoverLetter = () => {
-    const [loading, setLoading] = useState(false);
-    const [coverLetter, setCoverLetter] = useState('');
+interface GenerateCoverLetterArgs {
+    parsedResume: string;
+    jobDescription: string;
+}
 
-    const generateCoverLetter = async (parsedResume: string, jobDescription: string) => {
-        setLoading(true);
-        try {
+export const useGenerateCoverLetter = () => {
+    const generateCoverLetterMutation = useMutation({
+        mutationFn: async ({ parsedResume, jobDescription }: GenerateCoverLetterArgs) => {
             const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND}/api/cover-letter`, {
                 parsedResume,
                 jobDescription
             });
-            if (response.status === 200) {
-                const { data } = response;
-                setCoverLetter(data.coverLetter.response.candidates[0].content.parts[0].text);
-                toast({
-                    title: "Cover Letter Generated Successfully",
-                    description: "",
-                });
-            } else {
-                toast({
-                    title: "Error generating cover letter",
-                    description: "There was an issue generating cover letter. Please try again.",
-                });
-            }
-        } catch (error) {
+            if (response.status === 200) return response.data.coverLetter.response.candidates[0].content.parts[0].text;
+            else throw new Error('Error generating cover letter');
+        },
+        onSuccess: (coverLetter) => {
+            toast({
+                title: "Cover Letter Generated Successfully",
+                description: "",
+            });
+        },
+        onError: () => {
             toast({
                 title: "Error",
                 description: "An unexpected error occurred. Please try again.",
             });
-        } finally {
-            setLoading(false);
-        }
-    };
+        },
+    });
 
     return {
-        loading,
-        coverLetter,
-        setCoverLetter,
-        generateCoverLetter,
+        loading: generateCoverLetterMutation.status === "pending",
+        coverLetter: generateCoverLetterMutation.data || '',
+        setCoverLetter: (coverLetter: string) => { },
+        generateCoverLetter: (parsedResume: string, jobDescription: string) => {
+            generateCoverLetterMutation.mutate({ parsedResume, jobDescription });
+        },
     };
 };
